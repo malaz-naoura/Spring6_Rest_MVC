@@ -6,10 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -37,33 +34,35 @@ public class JuiceServiceImpl implements JuiceService {
                             .createdDate(LocalDateTime.now())
                             .build();
 
-        this.uuidJuiceMap.put(juice1.getId(),juice1);
-        this.uuidJuiceMap.put(juice2.getId(),juice2);
-        this.uuidJuiceMap.put(juice3.getId(),juice3);
+        this.uuidJuiceMap.put(juice1.getId(), juice1);
+        this.uuidJuiceMap.put(juice2.getId(), juice2);
+        this.uuidJuiceMap.put(juice3.getId(), juice3);
     }
 
     @Override
-    public List<Juice> listJuices(){
-        return uuidJuiceMap.values().stream().toList();
+    public List<Juice> listJuices() {
+        return uuidJuiceMap.values()
+                           .stream()
+                           .toList();
     }
 
     @Override
-    public Juice getJuiceById(UUID id) {
+    public Optional<Juice> getJuiceById(UUID id) {
         log.debug("getJuiceById - JuiceService");
-        return this.uuidJuiceMap.get(id);
+        return Optional.of(this.uuidJuiceMap.get(id));
     }
 
     @Override
     public Juice addJuice(Juice juice) {
-        UUID id=UUID.randomUUID();
+        UUID id = UUID.randomUUID();
         juice.setId(id);
-        uuidJuiceMap.put(id,juice);
+        uuidJuiceMap.put(id, juice);
         return uuidJuiceMap.get(id);
     }
 
     @Override
     public Juice updateOrCreate(UUID id, Juice juice) {
-        uuidJuiceMap.put(id,juice);
+        uuidJuiceMap.put(id, juice);
         return uuidJuiceMap.get(id);
     }
 
@@ -74,18 +73,17 @@ public class JuiceServiceImpl implements JuiceService {
 
     @Override
     public void update(UUID id, Juice newJuice) {
-        Juice toUpdateJuice= uuidJuiceMap.get(id);
-        if(StringUtils.hasText(newJuice.getJuiceName())){
+        Juice toUpdateJuice = uuidJuiceMap.get(id);
+        if (StringUtils.hasText(newJuice.getJuiceName())) {
             toUpdateJuice.setJuiceName(newJuice.getJuiceName());
         }
-        if(newJuice.getPrice()!=(null))
-        {
+        if (newJuice.getPrice() != (null)) {
             toUpdateJuice.setPrice(newJuice.getPrice());
         }
         // continue to all properties like this
         // if it's a string data type check whether exist and if it's object check is snot null
 
-        uuidJuiceMap.put(id,toUpdateJuice);
+        uuidJuiceMap.put(id, toUpdateJuice);
     }
 }
 

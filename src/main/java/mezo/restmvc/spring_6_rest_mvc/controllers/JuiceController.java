@@ -28,7 +28,7 @@ public class JuiceController {
 
     @GetMapping(JUICE_ID_VAR)
     Juice getById(@PathVariable("juiceId") UUID juiceId){
-        return juiceService.getJuiceById(juiceId);
+        return juiceService.getJuiceById(juiceId).orElseThrow(NotFoundException::new);
     }
 
     @PostMapping
