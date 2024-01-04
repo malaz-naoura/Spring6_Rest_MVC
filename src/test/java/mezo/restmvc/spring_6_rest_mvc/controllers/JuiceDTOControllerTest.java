@@ -1,8 +1,7 @@
 package mezo.restmvc.spring_6_rest_mvc.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import mezo.restmvc.spring_6_rest_mvc.model.Juice;
+import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.service.JuiceService;
 import mezo.restmvc.spring_6_rest_mvc.service.JuiceServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.mockito.BDDMockito.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -29,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @WebMvcTest(JuiceController.class)
-class JuiceControllerTest {
+class JuiceDTOControllerTest {
 
     @Autowired
     MockMvc mockMvc;
@@ -44,7 +42,7 @@ class JuiceControllerTest {
 
     ArgumentCaptor<UUID> uuidArgumentCaptor = ArgumentCaptor.forClass(UUID.class);
 
-    ArgumentCaptor<Juice> juiceArgumentCaptor = ArgumentCaptor.forClass(Juice.class);
+    ArgumentCaptor<JuiceDTO> juiceArgumentCaptor = ArgumentCaptor.forClass(JuiceDTO.class);
 
 
     @BeforeEach
@@ -54,49 +52,49 @@ class JuiceControllerTest {
 
     @Test
     void listJuice() throws Exception {
-        List<Juice> juiceList = juiceServiceImpl.listJuices();
+        List<JuiceDTO> juiceDTOList = juiceServiceImpl.listJuices();
 
-        given(juiceService.listJuices()).willReturn(juiceList);
+        given(juiceService.listJuices()).willReturn(juiceDTOList);
 
         mockMvc.perform(get(JuiceController.JUICE_PATH).accept(MediaType.APPLICATION_JSON))
                .andExpect(status().isOk())
                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-               .andExpect(jsonPath("$.length()", is(juiceList.size())));
+               .andExpect(jsonPath("$.length()", is(juiceDTOList.size())));
     }
 
     @Test
     void getById() throws Exception {
-        Juice juice = juiceServiceImpl.listJuices()
-                                      .get(0);
+        JuiceDTO juiceDTO = juiceServiceImpl.listJuices()
+                                            .get(0);
 
-        given(juiceService.getJuiceById(any(UUID.class))).willReturn(Optional.of(juice));
+        given(juiceService.getJuiceById(any(UUID.class))).willReturn(Optional.of(juiceDTO));
 
-        mockMvc.perform(get(JuiceController.JUICE_PATH_ID, juice.getId()).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).accept(MediaType.APPLICATION_JSON))
                .andExpect(status().isOk())
                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                // throw exception when using  optional class and jsonPath together, because the different type of UUID detected
 //               .andExpect(jsonPath("$.id", is(Optional.of(juice).get().getId())))
-               .andExpect(jsonPath("$.juiceName", is(juice.getJuiceName())));
+               .andExpect(jsonPath("$.juiceName", is(juiceDTO.getJuiceName())));
     }
 
     @Test
     void saveNewJuice() throws Exception {
         Integer lastElement = juiceServiceImpl.listJuices()
                                               .size() - 1;
-        Juice originalJuice = juiceServiceImpl.listJuices()
-                                              .get(lastElement);
+        JuiceDTO originalJuiceDTO = juiceServiceImpl.listJuices()
+                                                    .get(lastElement);
 
-        given(juiceService.addJuice(any(Juice.class))).willReturn(originalJuice);
+        given(juiceService.addJuice(any(JuiceDTO.class))).willReturn(originalJuiceDTO);
 
-        Juice newJuice = originalJuice.toBuilder()
-                                      .id(null)
-                                      .version(null)
-                                      .build();
-        newJuice.setId(null);
-        newJuice.setVersion(null);
+        JuiceDTO newJuiceDTO = originalJuiceDTO.toBuilder()
+                                               .id(null)
+                                               .version(null)
+                                               .build();
+        newJuiceDTO.setId(null);
+        newJuiceDTO.setVersion(null);
 
         mockMvc.perform(post(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
-                                                        .content(objectMapper.writeValueAsString(newJuice))
+                                                        .content(objectMapper.writeValueAsString(newJuiceDTO))
                                                         .accept(MediaType.APPLICATION_JSON))
                .andExpect(status().isCreated())
                .andExpect(header().exists("Location"));
@@ -105,49 +103,51 @@ class JuiceControllerTest {
     @Test
     void updateOrCreateJuice() throws Exception {
 
-        Juice juice = juiceServiceImpl.listJuices()
-                                      .get(0);
+        JuiceDTO juiceDTO = juiceServiceImpl.listJuices()
+                                            .get(0);
 
-        mockMvc.perform(put(JuiceController.JUICE_PATH_ID, juice.getId()).contentType(MediaType.APPLICATION_JSON)
-                                                                         .content(objectMapper.writeValueAsString(juice))
-                                                                         .accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(put(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).contentType(MediaType.APPLICATION_JSON)
+                                                                            .content(objectMapper.writeValueAsString(juiceDTO))
+                                                                            .accept(MediaType.APPLICATION_JSON))
                .andExpect(status().isNoContent());
 
-        verify(juiceService).updateOrCreate(any(UUID.class), any(Juice.class));
+        verify(juiceService).updateOrCreate(any(UUID.class), any(JuiceDTO.class));
     }
 
     @Test
     void deleteById() throws Exception {
 
-        Juice juice = juiceServiceImpl.listJuices()
-                                      .get(0);
+        JuiceDTO juiceDTO = juiceServiceImpl.listJuices()
+                                            .get(0);
 
-        mockMvc.perform(delete(JuiceController.JUICE_PATH_ID, juice.getId()).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).accept(MediaType.APPLICATION_JSON))
                .andExpect(status().isNoContent());
 
         verify(juiceService).removeById(uuidArgumentCaptor.capture());
 
-        assertThat(juice.getId()).isEqualTo(uuidArgumentCaptor.getValue());
+        assertThat(juiceDTO.getId()).isEqualTo(uuidArgumentCaptor.getValue());
 
     }
 
     @Test
     void updateJuice() throws Exception {
-        Juice juice = juiceServiceImpl.listJuices()
-                                      .get(0);
+        JuiceDTO juiceDTO = juiceServiceImpl.listJuices()
+                                            .get(0);
 
-        juice.setJuiceName("mezoooo");
+        juiceDTO.setJuiceName("mezoooo");
 
-        mockMvc.perform(patch(JuiceController.JUICE_PATH_ID, juice.getId()).accept(MediaType.APPLICATION_JSON)
-                                                                           .contentType(MediaType.APPLICATION_JSON)
-                                                                           .content(objectMapper.writeValueAsString(juice)))
+        given(juiceService.update(any(UUID.class),any(JuiceDTO.class))).willReturn(Optional.of(juiceDTO));
+
+        mockMvc.perform(patch(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).accept(MediaType.APPLICATION_JSON)
+                                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                                              .content(objectMapper.writeValueAsString(juiceDTO)))
                .andExpect(status().isNoContent());
 
         verify(juiceService).update(uuidArgumentCaptor.capture(), juiceArgumentCaptor.capture());
 
-        assertThat(juice.getId()).isEqualTo(uuidArgumentCaptor.getValue());
-        assertThat(juice.getJuiceName()).isEqualTo(juiceArgumentCaptor.getValue()
-                                                                      .getJuiceName());
+        assertThat(juiceDTO.getId()).isEqualTo(uuidArgumentCaptor.getValue());
+        assertThat(juiceDTO.getJuiceName()).isEqualTo(juiceArgumentCaptor.getValue()
+                                                                         .getJuiceName());
     }
 
     @Test
