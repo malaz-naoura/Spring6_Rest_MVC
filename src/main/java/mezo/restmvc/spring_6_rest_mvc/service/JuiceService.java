@@ -1,21 +1,21 @@
 package mezo.restmvc.spring_6_rest_mvc.service;
 
-import mezo.restmvc.spring_6_rest_mvc.model.Juice;
+import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface JuiceService {
-    List<Juice> listJuices();
+    List<JuiceDTO> listJuices();
 
-    Optional<Juice> getJuiceById(UUID id);
+    Optional<JuiceDTO> getJuiceById(UUID id);
 
-    Juice addJuice(Juice juice);
+    JuiceDTO addJuice(JuiceDTO juiceDTO);
 
-    Juice updateOrCreate(UUID id, Juice juice);
+    JuiceDTO updateOrCreate(UUID id, JuiceDTO juiceDTO);
 
-    void removeById(UUID id);
+    Boolean removeById(UUID id);
 
-    void update(UUID id, Juice juice);
+    Optional<JuiceDTO> update(UUID id, JuiceDTO juiceDTO);
 }
