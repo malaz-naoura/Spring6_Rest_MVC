@@ -1,6 +1,7 @@
 package mezo.restmvc.spring_6_rest_mvc.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import mezo.restmvc.spring_6_rest_mvc.entities.Juice;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.service.JuiceService;
 import mezo.restmvc.spring_6_rest_mvc.service.JuiceServiceImpl;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,13 +23,14 @@ import static org.mockito.BDDMockito.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @WebMvcTest(JuiceController.class)
-class JuiceDTOControllerTest {
+class JuiceControllerTest {
 
     @Autowired
     MockMvc mockMvc;
@@ -119,6 +122,7 @@ class JuiceDTOControllerTest {
 
         JuiceDTO juiceDTO = juiceServiceImpl.listJuices()
                                             .get(0);
+        given(juiceService.removeById(any(UUID.class))).willReturn(Boolean.TRUE);
 
         mockMvc.perform(delete(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).accept(MediaType.APPLICATION_JSON))
                .andExpect(status().isNoContent());
@@ -136,7 +140,7 @@ class JuiceDTOControllerTest {
 
         juiceDTO.setJuiceName("mezoooo");
 
-        given(juiceService.update(any(UUID.class),any(JuiceDTO.class))).willReturn(Optional.of(juiceDTO));
+        given(juiceService.update(any(UUID.class), any(JuiceDTO.class))).willReturn(Optional.of(juiceDTO));
 
         mockMvc.perform(patch(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).accept(MediaType.APPLICATION_JSON)
                                                                               .contentType(MediaType.APPLICATION_JSON)
@@ -158,4 +162,26 @@ class JuiceDTOControllerTest {
         mockMvc.perform(get(JuiceController.JUICE_PATH_ID, UUID.randomUUID()))
                .andExpect(status().isNotFound());
     }
+
+    @Test
+    void testCreateJuiceWithNullJuiceName() throws Exception {
+
+        JuiceDTO juice = JuiceDTO.builder()
+                                 .build();
+
+        given(juiceService.addJuice(any())).willReturn(JuiceDTO.builder()
+                                                               .id(UUID.randomUUID())
+                                                               .build());
+
+        MvcResult mvcResult = mockMvc.perform(post(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
+                                                                              .content(objectMapper.writeValueAsString(juice)))
+                                     .andExpect(jsonPath("$.length()", is(2)))
+                                     .andExpect(status().isBadRequest())
+                                     .andReturn();
+
+        System.out.println(mvcResult.getResponse()
+                                    .getContentAsString());
+
+    }
 }
+
