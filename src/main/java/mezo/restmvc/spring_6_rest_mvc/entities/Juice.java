@@ -1,6 +1,9 @@
 package mezo.restmvc.spring_6_rest_mvc.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +29,11 @@ public class Juice {
     private UUID id;
     @Version
     private Integer version;
+
+    @NotNull
+    @NotBlank
+    @Size(max = 25) // validation before submit the new data to database and return exception if violate tht constraints
+    @Column(length = 25) // filed's size
     private String juiceName;
     private JuiceStyle juiceStyle;
     private String upc;

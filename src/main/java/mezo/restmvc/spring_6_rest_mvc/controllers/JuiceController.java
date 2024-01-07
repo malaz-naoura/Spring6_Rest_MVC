@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.service.JuiceService;
 import org.springframework.http.*;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public class JuiceController {
     }
 
     @PostMapping
-    ResponseEntity saveNewJuice(@RequestBody JuiceDTO juiceDTO) {
+    ResponseEntity saveNewJuice(@Validated @RequestBody JuiceDTO juiceDTO) {
         JuiceDTO savedJuiceDTO = juiceService.addJuice(juiceDTO);
         HttpHeaders headers = new HttpHeaders();
         headers.add("Location", "api/v1/" + savedJuiceDTO.getId());
@@ -57,7 +58,6 @@ public class JuiceController {
 
     @PatchMapping(JUICE_ID_VAR)
     ResponseEntity updateJuice(@PathVariable("juiceId") UUID id, @RequestBody JuiceDTO juiceDTO) {
-        System.out.println(juiceService.getClass());
         Optional<JuiceDTO> updatedJuice = juiceService.update(id, juiceDTO);
         if (updatedJuice.isEmpty()) {
             throw new NotFoundException();

@@ -1,20 +1,37 @@
 package mezo.restmvc.spring_6_rest_mvc.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import mezo.restmvc.spring_6_rest_mvc.entities.Juice;
 import mezo.restmvc.spring_6_rest_mvc.mappers.JuiceMapper;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.repositories.JuiceRepo;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MockMvcBuilder;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +48,20 @@ class JuiceControllerIT {
 
     @Autowired
     JuiceMapper juiceMapper;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @Autowired
+    WebApplicationContext wac;
+
+    MockMvc mockMvc;
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(wac)
+                                 .build();
+    }
 
     @Test
     void testListJuice() {
@@ -151,6 +182,23 @@ class JuiceControllerIT {
             juiceController.deleteById(UUID.randomUUID());
         });
 
+    }
+
+    @Test
+    void updateJuiceWithTooLongJuiceName() throws Exception {
+
+        Juice juice = juiceRepo.findAll()
+                               .get(0);
+
+        juice.setJuiceName("mezoooo1234567890mezoooo1234567890mezoooo1234567890");
+
+        MvcResult mvcResult = mockMvc.perform(patch(JuiceController.JUICE_PATH_ID, juice.getId()).accept(MediaType.APPLICATION_JSON)
+                                                                                                 .contentType(MediaType.APPLICATION_JSON)
+                                                                                                 .content(objectMapper.writeValueAsString(juice)))
+                                     .andExpect(status().isBadRequest())
+                                     .andReturn();
+
+        System.out.println(mvcResult.getResponse().getContentAsString());
     }
 
 }

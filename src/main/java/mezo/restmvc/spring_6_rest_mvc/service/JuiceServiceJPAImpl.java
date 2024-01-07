@@ -6,6 +6,7 @@ import mezo.restmvc.spring_6_rest_mvc.mappers.JuiceMapper;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.repositories.JuiceRepo;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -64,10 +65,20 @@ public class JuiceServiceJPAImpl implements JuiceService {
 
         juiceRepo.findById(id)
                  .ifPresentOrElse(juice -> {
-                     juice.setJuiceName(juiceDTO.getJuiceName());
-                     juice.setJuiceStyle(juiceDTO.getJuiceStyle());
-                     juice.setPrice(juiceDTO.getPrice());
+                     if (juiceDTO.getId() != null)
+                         juice.setJuiceName(juiceDTO.getJuiceName());
+
+                     if (juiceDTO.getJuiceName() != null)
+                         juice.setJuiceName(juiceDTO.getJuiceName());
+
+                     if (juiceDTO.getJuiceStyle() != null)
+                         juice.setJuiceStyle(juiceDTO.getJuiceStyle());
+
+                     if (juiceDTO.getPrice() != null)
+                         juice.setPrice(juiceDTO.getPrice());
+
                      atomicReference.set(Optional.of(juiceMapper.objToDto(juice)));
+                     juiceRepo.save(juice);
                  }, () -> {
                      atomicReference.set(Optional.empty());
                  });

@@ -1,6 +1,8 @@
 package mezo.restmvc.spring_6_rest_mvc.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import mezo.restmvc.spring_6_rest_mvc.entities.Customer;
+import mezo.restmvc.spring_6_rest_mvc.mappers.CustomerMapper;
 import mezo.restmvc.spring_6_rest_mvc.model.CustomerDTO;
 import mezo.restmvc.spring_6_rest_mvc.service.CustomerService;
 import mezo.restmvc.spring_6_rest_mvc.service.CustomerServiceImpl;
@@ -76,6 +78,8 @@ class CustomerControllerTest {
     void testDeleteCustomer() throws Exception {
         CustomerDTO customer = customerServiceImpl.getAllCustomers().get(0);
 
+        given(customerService.deleteCustomerById(any(UUID.class))).willReturn(Boolean.TRUE);
+
         mockMvc.perform(delete(CustomerController.CUSTOMER_PATH_ID, customer.getId())
                        .contentType(MediaType.APPLICATION_JSON))
                .andExpect(status().isNoContent());
@@ -88,6 +92,8 @@ class CustomerControllerTest {
     @Test
     void testUpdateCustomer() throws Exception {
         CustomerDTO customer = customerServiceImpl.getAllCustomers().get(0);
+
+        given(customerService.updateCustomerById(any(),any())).willReturn(Optional.of(customer));
 
         mockMvc.perform(put(CustomerController.CUSTOMER_PATH_ID, customer.getId())
                        .content(objectMapper.writeValueAsString(customer))
