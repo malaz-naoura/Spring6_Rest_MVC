@@ -29,4 +29,5 @@ public class Customer {
     private String name;
     private LocalDateTime createdDate;
     private LocalDateTime updateDate;
+    private String email;
 }
