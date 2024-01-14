@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import mezo.restmvc.spring_6_rest_mvc.entities.Juice;
 import mezo.restmvc.spring_6_rest_mvc.mappers.JuiceMapper;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
+import mezo.restmvc.spring_6_rest_mvc.model.JuiceStyle;
 import mezo.restmvc.spring_6_rest_mvc.repositories.JuiceRepo;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,10 +25,32 @@ public class JuiceServiceJPAImpl implements JuiceService {
     private final JuiceRepo juiceRepo;
     private final JuiceMapper juiceMapper;
 
+    List<Juice> listJuiceByName(String juiceName) {
+        return juiceRepo.findAllByJuiceName(juiceName);
+    }
+
+    List<Juice> listJuiceByStyle(String juiceStyle) {
+        return juiceRepo.findAllByJuiceStyle(JuiceStyle.valueOf(juiceStyle));
+    }
+
     @Override
-    public List<JuiceDTO> listJuices() {
-        return juiceRepo.findAll()
-                        .stream()
+    public List<JuiceDTO> listJuices(String juiceName, String juiceStyle, Boolean showInventory) {
+
+        List<Juice> juiceList = null;
+
+        if (StringUtils.hasText(juiceName) && StringUtils.hasText(juiceStyle)) {
+            juiceList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, JuiceStyle.valueOf(juiceStyle));
+        } else if (StringUtils.hasText(juiceName)) {
+            juiceList = listJuiceByName(juiceName);
+
+        } else if (StringUtils.hasText(juiceStyle)) {
+            juiceList = listJuiceByStyle(juiceStyle);
+
+        } else {
+            juiceList = juiceRepo.findAll();
+        }
+
+        return juiceList.stream()
                         .map(juiceMapper::objToDto)
                         .collect(Collectors.toList());
     }
@@ -65,17 +89,13 @@ public class JuiceServiceJPAImpl implements JuiceService {
 
         juiceRepo.findById(id)
                  .ifPresentOrElse(juice -> {
-                     if (juiceDTO.getId() != null)
-                         juice.setJuiceName(juiceDTO.getJuiceName());
+                     if (juiceDTO.getId() != null) juice.setJuiceName(juiceDTO.getJuiceName());
 
-                     if (juiceDTO.getJuiceName() != null)
-                         juice.setJuiceName(juiceDTO.getJuiceName());
+                     if (juiceDTO.getJuiceName() != null) juice.setJuiceName(juiceDTO.getJuiceName());
 
-                     if (juiceDTO.getJuiceStyle() != null)
-                         juice.setJuiceStyle(juiceDTO.getJuiceStyle());
+                     if (juiceDTO.getJuiceStyle() != null) juice.setJuiceStyle(juiceDTO.getJuiceStyle());
 
-                     if (juiceDTO.getPrice() != null)
-                         juice.setPrice(juiceDTO.getPrice());
+                     if (juiceDTO.getPrice() != null) juice.setPrice(juiceDTO.getPrice());
 
                      atomicReference.set(Optional.of(juiceMapper.objToDto(juice)));
                      juiceRepo.save(juice);

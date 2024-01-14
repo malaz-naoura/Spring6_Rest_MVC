@@ -4,18 +4,27 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import mezo.restmvc.spring_6_rest_mvc.entities.Customer;
 import mezo.restmvc.spring_6_rest_mvc.entities.Juice;
+import mezo.restmvc.spring_6_rest_mvc.mezoutils.Random;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceCsvRecord;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceStyle;
 import mezo.restmvc.spring_6_rest_mvc.repositories.CustomerRepo;
 import mezo.restmvc.spring_6_rest_mvc.repositories.JuiceRepo;
 import mezo.restmvc.spring_6_rest_mvc.service.JuiceCsvService;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +43,7 @@ public class BootstrapData implements CommandLineRunner {
     public void run(String... args) throws Exception {
 //        loadJuiceData();
         loadCustomerData();
-//        loadJuiceFromCsvData();
+        loadJuiceFromCsvData();
     }
 
     private void loadJuiceData() {
@@ -108,20 +117,37 @@ public class BootstrapData implements CommandLineRunner {
 
     }
 
-    private void loadJuiceFromCsvData() throws FileNotFoundException {
+    private void loadJuiceFromCsvData() throws IOException {
+
+
+//        URL currentFile = ResourceUtils.getURL("classpath:csvData/Juices.csv");
+
+//        ClassPathResource classPathResource= new ClassPathResource("classpath:csvData/Juices.csv");
+//        File currentFile= classPathResource.getFile();
+
+//        Resource classPathResource = resourceLoader.getResource("classpath:csvData/Juices.csv");
+//        File currentFile=classPathResource.getFile();
+
+//        Resource resource = new ClassPathResource("Juices.csv");
+//        File currentFile = resource.getFile();
+
+        //todo
+        //all above way the same problem as below
+        //when package the jar and try to run it will throw exciton with this message: Caused by: java.io.FileNotFoundException: class path resource [Juices.csv] cannot be resolved to absolute file path because it does not reside in the file system: jar:nested:/C:/Users/M1/.m2/repository/mezo/restmvc/Spring_6_Rest_MVC/0.0.1-SNAPSHOT/Spring_6_Rest_MVC-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/Juices.csv
+        //don't forget to change in JuiceCsvServiceTest.convertCsv when change here
         File currentFile = ResourceUtils.getFile("classpath:csvData/Juices.csv");
+
         List<JuiceCsvRecord> juiceCsvRecords = juiceCsvService.convertCsv(currentFile);
 
-        if(juiceRepo.count()<0)
+        if (juiceRepo.count() > 0)
             return;
 
         juiceRepo.saveAll(juiceCsvRecords.stream()
                                          .map(o -> {
                                              return Juice.builder()
-                                                         .juiceName(o.getJuice()
-                                                                     .substring(0, Math.min(o.getJuice()
-                                                                                             .length(), 25)))
+                                                         .juiceName(StringUtils.abbreviate(o.getJuice(), 10))
                                                          .quantityOnHand(o.getCount())
+                                                         .juiceStyle(Random.getRandomValueOf(JuiceStyle.class))
                                                          .build();
                                          })
                                          .collect(Collectors.toList()));

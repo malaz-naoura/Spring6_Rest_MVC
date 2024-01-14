@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface JuiceService {
-    List<JuiceDTO> listJuices();
+    List<JuiceDTO> listJuices(String juiceName,String juiceStyle,Boolean showInventory);
 
     Optional<JuiceDTO> getJuiceById(UUID id);
 
