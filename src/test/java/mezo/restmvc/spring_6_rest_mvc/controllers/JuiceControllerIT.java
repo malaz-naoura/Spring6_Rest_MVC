@@ -4,40 +4,42 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import mezo.restmvc.spring_6_rest_mvc.entities.Juice;
 import mezo.restmvc.spring_6_rest_mvc.mappers.JuiceMapper;
+import mezo.restmvc.spring_6_rest_mvc.mezoutils.Random;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.repositories.JuiceRepo;
 import org.assertj.core.api.Assertions;
+import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootTest
+@ActiveProfiles("test")
 class JuiceControllerIT {
 
     @Autowired
@@ -57,6 +59,7 @@ class JuiceControllerIT {
 
     MockMvc mockMvc;
 
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(wac)
@@ -65,7 +68,7 @@ class JuiceControllerIT {
 
     @Test
     void testListJuice() {
-        List<JuiceDTO> juiceDTOList = juiceController.listJuice();
+        List<JuiceDTO> juiceDTOList = juiceController.listJuice(null, null, null);
         Assertions.assertThat(juiceDTOList.size())
                   .isEqualTo(juiceRepo.count());
     }
@@ -75,7 +78,7 @@ class JuiceControllerIT {
     @Test
     void testEmptyListJuice() {
         juiceRepo.deleteAll();
-        List<JuiceDTO> juiceDTOList = juiceController.listJuice();
+        List<JuiceDTO> juiceDTOList = juiceController.listJuice(null, null, null);
         Assertions.assertThat(juiceDTOList.size())
                   .isEqualTo(juiceRepo.count());
     }
@@ -198,7 +201,116 @@ class JuiceControllerIT {
                                      .andExpect(status().isBadRequest())
                                      .andReturn();
 
-        System.out.println(mvcResult.getResponse().getContentAsString());
+        System.out.println(mvcResult.getResponse()
+                                    .getContentAsString());
     }
 
+    @Test
+    void testListJuiceByName() throws Exception {
+
+        Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
+        String juiceName = juice.getJuiceName();
+
+        Integer sizeOfList = juiceRepo.findAllByJuiceName(juiceName)
+                                      .size();
+
+        mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
+                                                       .queryParam("juiceName", juiceName))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.size()", is(sizeOfList)))
+               .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))));
+    }
+
+    @Test
+    void testListJuiceByJuiceStyle() throws Exception {
+
+        Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
+        String juiceStyleString = juice.getJuiceStyle()
+                                       .name();
+
+        Integer sizeOfList = juiceRepo.findAllByJuiceStyle(juice.getJuiceStyle())
+                                      .size();
+
+        mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
+                                                       .queryParam("juiceStyle", juiceStyleString))
+               .andExpect(jsonPath("$.size()", is(sizeOfList)))
+               .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))));
+
+    }
+
+    @Test
+    void testListJuiceByNameAndJuiceStyle() throws Exception {
+        Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
+        String juiceName = juice.getJuiceName();
+        String juiceStyleString = juice.getJuiceStyle()
+                                       .name();
+
+        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle())
+                                      .size();
+
+        mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
+                                                       .queryParam("juiceName", juiceName)
+                                                       .queryParam("juiceStyle", juiceStyleString))
+               .andExpect(jsonPath("$.size()", is(sizeOfList)))
+               .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))))
+               .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))));
+
+    }
+
+    @Test
+    void testListJuiceByShowInventoryTrue() throws Exception {
+        mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
+                                                       .queryParam("showInventory", String.valueOf(true)))
+               .andExpect(jsonPath("$.*.['quantityOnHand']",everyItem(notNullValue())));
+
+    }
+
+    @Test
+    void testListJuiceByShowInventoryFalse() throws Exception {
+        mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
+                                                       .queryParam("showInventory", String.valueOf(false)))
+               .andExpect(jsonPath("$.*.['quantityOnHand']",everyItem(nullValue())));
+
+    }
+
+    @Test
+    void testListJuiceByNameAndJuiceStyleAndShowInventoryTrue() throws Exception {
+        Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
+        String juiceName = juice.getJuiceName();
+        String juiceStyleString = juice.getJuiceStyle()
+                                       .name();
+
+        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle())
+                                      .size();
+
+        mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
+                                                       .queryParam("juiceName", juiceName)
+                                                       .queryParam("juiceStyle", juiceStyleString)
+                                                       .queryParam("showInventory", String.valueOf(true)))
+               .andExpect(jsonPath("$.size()", is(sizeOfList)))
+               .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))))
+               .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))))
+               .andExpect(jsonPath("$.*.['quantityOnHand']",everyItem(notNullValue())));
+
+    }
+
+    @Test
+    void testListJuiceByNameAndJuiceStyleAndShowInventoryFalse() throws Exception {
+        Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
+        String juiceName = juice.getJuiceName();
+        String juiceStyleString = juice.getJuiceStyle()
+                                       .name();
+
+        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle())
+                                      .size();
+
+        mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
+                                                       .queryParam("juiceName", juiceName)
+                                                       .queryParam("juiceStyle", juiceStyleString)
+                                                       .queryParam("showInventory", String.valueOf(false)))
+               .andExpect(jsonPath("$.size()", is(sizeOfList)))
+               .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))))
+               .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))))
+               .andExpect(jsonPath("$.*.['quantityOnHand']",everyItem(nullValue())));
+    }
 }

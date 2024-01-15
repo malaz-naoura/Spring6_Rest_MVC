@@ -55,9 +55,9 @@ class JuiceControllerTest {
 
     @Test
     void listJuice() throws Exception {
-        List<JuiceDTO> juiceDTOList = juiceServiceImpl.listJuices();
+        List<JuiceDTO> juiceDTOList = juiceServiceImpl.listJuices(null,null,null);
 
-        given(juiceService.listJuices()).willReturn(juiceDTOList);
+        given(juiceService.listJuices(any(),any(),any())).willReturn(juiceDTOList);
 
         mockMvc.perform(get(JuiceController.JUICE_PATH).accept(MediaType.APPLICATION_JSON))
                .andExpect(status().isOk())
@@ -67,7 +67,7 @@ class JuiceControllerTest {
 
     @Test
     void getById() throws Exception {
-        JuiceDTO juiceDTO = juiceServiceImpl.listJuices()
+        JuiceDTO juiceDTO = juiceServiceImpl.listJuices(null,null,null)
                                             .get(0);
 
         given(juiceService.getJuiceById(any(UUID.class))).willReturn(Optional.of(juiceDTO));
@@ -82,9 +82,9 @@ class JuiceControllerTest {
 
     @Test
     void saveNewJuice() throws Exception {
-        Integer lastElement = juiceServiceImpl.listJuices()
+        Integer lastElement = juiceServiceImpl.listJuices(null,null,null)
                                               .size() - 1;
-        JuiceDTO originalJuiceDTO = juiceServiceImpl.listJuices()
+        JuiceDTO originalJuiceDTO = juiceServiceImpl.listJuices(null,null,null)
                                                     .get(lastElement);
 
         given(juiceService.addJuice(any(JuiceDTO.class))).willReturn(originalJuiceDTO);
@@ -106,7 +106,7 @@ class JuiceControllerTest {
     @Test
     void updateOrCreateJuice() throws Exception {
 
-        JuiceDTO juiceDTO = juiceServiceImpl.listJuices()
+        JuiceDTO juiceDTO = juiceServiceImpl.listJuices(null,null,null)
                                             .get(0);
 
         mockMvc.perform(put(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).contentType(MediaType.APPLICATION_JSON)
@@ -120,7 +120,7 @@ class JuiceControllerTest {
     @Test
     void deleteById() throws Exception {
 
-        JuiceDTO juiceDTO = juiceServiceImpl.listJuices()
+        JuiceDTO juiceDTO = juiceServiceImpl.listJuices(null,null,null)
                                             .get(0);
         given(juiceService.removeById(any(UUID.class))).willReturn(Boolean.TRUE);
 
@@ -135,7 +135,7 @@ class JuiceControllerTest {
 
     @Test
     void updateJuice() throws Exception {
-        JuiceDTO juiceDTO = juiceServiceImpl.listJuices()
+        JuiceDTO juiceDTO = juiceServiceImpl.listJuices(null,null,null)
                                             .get(0);
 
         juiceDTO.setJuiceName("mezoooo");

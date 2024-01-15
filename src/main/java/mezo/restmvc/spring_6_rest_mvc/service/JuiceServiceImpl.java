@@ -40,7 +40,7 @@ public class JuiceServiceImpl implements JuiceService {
     }
 
     @Override
-    public List<JuiceDTO> listJuices() {
+    public List<JuiceDTO> listJuices(String juiceName, String juiceStyle, Boolean showInventory) {
         return uuidJuiceMap.values()
                            .stream()
                            .toList();
@@ -68,7 +68,7 @@ public class JuiceServiceImpl implements JuiceService {
 
     @Override
     public Boolean removeById(UUID id) {
-        if(!uuidJuiceMap.containsKey(id))
+        if (!uuidJuiceMap.containsKey(id))
             return false;
         uuidJuiceMap.remove(id);
         return true;

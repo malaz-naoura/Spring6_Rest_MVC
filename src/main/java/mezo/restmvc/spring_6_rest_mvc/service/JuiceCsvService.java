@@ -4,7 +4,7 @@ import mezo.restmvc.spring_6_rest_mvc.model.JuiceCsvRecord;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.net.URL;
 import java.util.List;
 
 public interface JuiceCsvService {
