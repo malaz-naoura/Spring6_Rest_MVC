@@ -33,13 +33,18 @@ public class JuiceServiceJPAImpl implements JuiceService {
         return juiceRepo.findAllByJuiceStyle(JuiceStyle.valueOf(juiceStyle));
     }
 
+    List<Juice> listJuiceByNameAndStyle(String juiceName, String juiceStyle) {
+        return juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, JuiceStyle.valueOf(juiceStyle));
+    }
+
     @Override
     public List<JuiceDTO> listJuices(String juiceName, String juiceStyle, Boolean showInventory) {
 
         List<Juice> juiceList = null;
 
         if (StringUtils.hasText(juiceName) && StringUtils.hasText(juiceStyle)) {
-            juiceList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, JuiceStyle.valueOf(juiceStyle));
+            juiceList = listJuiceByNameAndStyle(juiceName, juiceStyle);
+
         } else if (StringUtils.hasText(juiceName)) {
             juiceList = listJuiceByName(juiceName);
 
@@ -48,6 +53,10 @@ public class JuiceServiceJPAImpl implements JuiceService {
 
         } else {
             juiceList = juiceRepo.findAll();
+        }
+
+        if(showInventory==null || !showInventory){
+            juiceList.forEach(juice -> juice.setQuantityOnHand(null));
         }
 
         return juiceList.stream()
