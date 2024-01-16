@@ -2,6 +2,10 @@ package mezo.restmvc.spring_6_rest_mvc.service;
 
 import lombok.extern.slf4j.Slf4j;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -40,10 +44,17 @@ public class JuiceServiceImpl implements JuiceService {
     }
 
     @Override
-    public List<JuiceDTO> listJuices(String juiceName, String juiceStyle, Boolean showInventory) {
-        return uuidJuiceMap.values()
-                           .stream()
-                           .toList();
+    public Page<JuiceDTO> listJuices(String juiceName, String juiceStyle, Boolean showInventory, Integer pageNumber,
+                                     Integer pageSize) {
+
+        List<JuiceDTO>juiceDTOList= uuidJuiceMap.values()
+                    .stream()
+                    .toList();
+
+        //https://github.com/spring-projects/spring-data-commons/issues/2987
+        Pageable pageable = PageRequest.of(0, 25);
+
+        return new PageImpl<JuiceDTO>(juiceDTOList,pageable,juiceDTOList.size());
     }
 
     @Override
@@ -68,8 +79,7 @@ public class JuiceServiceImpl implements JuiceService {
 
     @Override
     public Boolean removeById(UUID id) {
-        if (!uuidJuiceMap.containsKey(id))
-            return false;
+        if (!uuidJuiceMap.containsKey(id)) return false;
         uuidJuiceMap.remove(id);
         return true;
     }

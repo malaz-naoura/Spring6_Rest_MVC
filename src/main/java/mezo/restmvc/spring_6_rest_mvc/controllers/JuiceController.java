@@ -2,14 +2,13 @@ package mezo.restmvc.spring_6_rest_mvc.controllers;
 
 
 import lombok.AllArgsConstructor;
-import mezo.restmvc.spring_6_rest_mvc.bootstrap.BootstrapData;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.service.JuiceService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,10 +23,12 @@ public class JuiceController {
     private final JuiceService juiceService;
 
     @GetMapping
-    List<JuiceDTO> listJuice(@RequestParam(required = false) String juiceName,
+    Page<JuiceDTO> listJuice(@RequestParam(required = false) String juiceName,
                              @RequestParam(required = false) String juiceStyle,
-                             @RequestParam(required = false) Boolean showInventory) {
-        return juiceService.listJuices(juiceName,juiceStyle,showInventory);
+                             @RequestParam(required = false) Boolean showInventory,
+                             @RequestParam(required = false) Integer pageNumber,
+                             @RequestParam(required = false) Integer pageSize) {
+        return juiceService.listJuices(juiceName, juiceStyle, showInventory, pageNumber, pageSize);
     }
 
     @GetMapping(JUICE_ID_VAR)

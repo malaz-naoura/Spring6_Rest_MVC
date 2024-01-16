@@ -1,13 +1,13 @@
 package mezo.restmvc.spring_6_rest_mvc.service;
 
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
+import org.springframework.data.domain.Page;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface JuiceService {
-    List<JuiceDTO> listJuices(String juiceName,String juiceStyle,Boolean showInventory);
+    Page<JuiceDTO> listJuices(String juiceName, String juiceStyle, Boolean showInventory, Integer pageNumber, Integer pageSize);
 
     Optional<JuiceDTO> getJuiceById(UUID id);
 

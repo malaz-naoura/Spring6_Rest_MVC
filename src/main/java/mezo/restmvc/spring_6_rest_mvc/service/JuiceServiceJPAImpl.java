@@ -7,15 +7,17 @@ import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceStyle;
 import mezo.restmvc.spring_6_rest_mvc.repositories.JuiceRepo;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.converter.json.GsonBuilderUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -25,43 +27,69 @@ public class JuiceServiceJPAImpl implements JuiceService {
     private final JuiceRepo juiceRepo;
     private final JuiceMapper juiceMapper;
 
-    List<Juice> listJuiceByName(String juiceName) {
-        return juiceRepo.findAllByJuiceName(juiceName);
+    public static final Integer DEFAULT_PAGE_NUMBER = 1;
+    public static final Integer DEFAULT_PAGE_SIZE = 25;
+
+    PageRequest createNewPageRequest(Integer pageNumber, Integer pageSize) {
+        if (pageNumber == null || pageNumber < 1)
+            pageNumber = DEFAULT_PAGE_NUMBER;
+
+        if (pageSize == null || pageSize < 1)
+            pageSize = DEFAULT_PAGE_SIZE;
+        else if (pageSize > 1000)
+            pageSize = 1000;
+
+        String filedNameToSortElementBy = "juiceName";
+        Boolean isExistField = Arrays.stream(Juice.class
+                                                     .getDeclaredFields())
+                                     .anyMatch(field -> field.getName()
+                                                             .equals(filedNameToSortElementBy));
+
+        if (!isExistField)
+            throw new RuntimeException("No field with name of " + filedNameToSortElementBy + "is founded");
+
+        Sort sort = Sort.by(filedNameToSortElementBy);
+        return PageRequest.of(pageNumber, pageSize,sort);
     }
 
-    List<Juice> listJuiceByStyle(String juiceStyle) {
-        return juiceRepo.findAllByJuiceStyle(JuiceStyle.valueOf(juiceStyle));
+    Page<Juice> listJuiceByName(String juiceName, Pageable pageable) {
+        return juiceRepo.findAllByJuiceName(juiceName, pageable);
     }
 
-    List<Juice> listJuiceByNameAndStyle(String juiceName, String juiceStyle) {
-        return juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, JuiceStyle.valueOf(juiceStyle));
+    Page<Juice> listJuiceByStyle(String juiceStyle, Pageable pageable) {
+        return juiceRepo.findAllByJuiceStyle(JuiceStyle.valueOf(juiceStyle), pageable);
+    }
+
+    Page<Juice> listJuiceByNameAndStyle(String juiceName, String juiceStyle, Pageable pageable) {
+        return juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, JuiceStyle.valueOf(juiceStyle), pageable);
     }
 
     @Override
-    public List<JuiceDTO> listJuices(String juiceName, String juiceStyle, Boolean showInventory) {
+    public Page<JuiceDTO> listJuices(String juiceName, String juiceStyle, Boolean showInventory, Integer pageNumber,
+                                     Integer pageSize) {
 
-        List<Juice> juiceList = null;
+        PageRequest pageRequest = createNewPageRequest(pageNumber, pageSize);
+
+        Page<Juice> juiceList = null;
 
         if (StringUtils.hasText(juiceName) && StringUtils.hasText(juiceStyle)) {
-            juiceList = listJuiceByNameAndStyle(juiceName, juiceStyle);
+            juiceList = listJuiceByNameAndStyle(juiceName, juiceStyle, pageRequest);
 
         } else if (StringUtils.hasText(juiceName)) {
-            juiceList = listJuiceByName(juiceName);
+            juiceList = listJuiceByName(juiceName, pageRequest);
 
         } else if (StringUtils.hasText(juiceStyle)) {
-            juiceList = listJuiceByStyle(juiceStyle);
+            juiceList = listJuiceByStyle(juiceStyle, pageRequest);
 
         } else {
-            juiceList = juiceRepo.findAll();
+            juiceList = juiceRepo.findAll(pageRequest);
         }
 
-        if(showInventory==null || !showInventory){
+        if (showInventory == null || !showInventory) {
             juiceList.forEach(juice -> juice.setQuantityOnHand(null));
         }
 
-        return juiceList.stream()
-                        .map(juiceMapper::objToDto)
-                        .collect(Collectors.toList());
+        return juiceList.map(juiceMapper::objToDto);
     }
 
     @Override
