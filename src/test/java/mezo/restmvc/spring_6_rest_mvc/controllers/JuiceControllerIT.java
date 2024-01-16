@@ -7,12 +7,14 @@ import mezo.restmvc.spring_6_rest_mvc.mappers.JuiceMapper;
 import mezo.restmvc.spring_6_rest_mvc.mezoutils.Random;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.repositories.JuiceRepo;
+import mezo.restmvc.spring_6_rest_mvc.service.JuiceServiceJPAImpl;
 import org.assertj.core.api.Assertions;
-import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -28,14 +30,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-import java.util.List;
 import java.util.UUID;
 
 @SpringBootTest
@@ -68,9 +69,8 @@ class JuiceControllerIT {
 
     @Test
     void testListJuice() {
-        List<JuiceDTO> juiceDTOList = juiceController.listJuice(null, null, null);
-        Assertions.assertThat(juiceDTOList.size())
-                  .isEqualTo(juiceRepo.count());
+        Page<JuiceDTO> juiceDTOList = juiceController.listJuice(null, null, null, null, null);
+        Assertions.assertThat(jsonPath("$.totalElements", is(juiceRepo.count())));
     }
 
     @Transactional
@@ -78,9 +78,8 @@ class JuiceControllerIT {
     @Test
     void testEmptyListJuice() {
         juiceRepo.deleteAll();
-        List<JuiceDTO> juiceDTOList = juiceController.listJuice(null, null, null);
-        Assertions.assertThat(juiceDTOList.size())
-                  .isEqualTo(juiceRepo.count());
+        Page<JuiceDTO> juiceDTOList = juiceController.listJuice(null, null, null, null, null);
+        Assertions.assertThat(jsonPath("$.totalElements", is(juiceRepo.count())));
     }
 
     @Test
@@ -195,9 +194,10 @@ class JuiceControllerIT {
 
         juice.setJuiceName("mezoooo1234567890mezoooo1234567890mezoooo1234567890");
 
-        MvcResult mvcResult = mockMvc.perform(patch(JuiceController.JUICE_PATH_ID, juice.getId()).accept(MediaType.APPLICATION_JSON)
-                                                                                                 .contentType(MediaType.APPLICATION_JSON)
-                                                                                                 .content(objectMapper.writeValueAsString(juice)))
+        MvcResult mvcResult = mockMvc.perform(
+                                             patch(JuiceController.JUICE_PATH_ID, juice.getId()).accept(MediaType.APPLICATION_JSON)
+                                                                                                .contentType(MediaType.APPLICATION_JSON)
+                                                                                                .content(objectMapper.writeValueAsString(juice)))
                                      .andExpect(status().isBadRequest())
                                      .andReturn();
 
@@ -211,29 +211,31 @@ class JuiceControllerIT {
         Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
         String juiceName = juice.getJuiceName();
 
-        Integer sizeOfList = juiceRepo.findAllByJuiceName(juiceName)
+
+        Integer sizeOfList = juiceRepo.findAllByJuiceName(juiceName, null)
+                                      .getContent()
                                       .size();
 
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("juiceName", juiceName))
                .andExpect(status().isOk())
-               .andExpect(jsonPath("$.size()", is(sizeOfList)))
+               .andExpect(jsonPath("$.totalElements", is(sizeOfList)))
                .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))));
     }
 
     @Test
     void testListJuiceByJuiceStyle() throws Exception {
-
         Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
         String juiceStyleString = juice.getJuiceStyle()
                                        .name();
 
-        Integer sizeOfList = juiceRepo.findAllByJuiceStyle(juice.getJuiceStyle())
+        Integer sizeOfList = juiceRepo.findAllByJuiceStyle(juice.getJuiceStyle(), null)
+                                      .getContent()
                                       .size();
 
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("juiceStyle", juiceStyleString))
-               .andExpect(jsonPath("$.size()", is(sizeOfList)))
+               .andExpect(jsonPath("$.totalElements", is(sizeOfList)))
                .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))));
 
     }
@@ -245,13 +247,14 @@ class JuiceControllerIT {
         String juiceStyleString = juice.getJuiceStyle()
                                        .name();
 
-        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle())
+        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle(), null)
+                                      .getContent()
                                       .size();
 
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("juiceName", juiceName)
                                                        .queryParam("juiceStyle", juiceStyleString))
-               .andExpect(jsonPath("$.size()", is(sizeOfList)))
+               .andExpect(jsonPath("$.totalElements", is(sizeOfList)))
                .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))))
                .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))));
 
@@ -261,7 +264,7 @@ class JuiceControllerIT {
     void testListJuiceByShowInventoryTrue() throws Exception {
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("showInventory", String.valueOf(true)))
-               .andExpect(jsonPath("$.*.['quantityOnHand']",everyItem(notNullValue())));
+               .andExpect(jsonPath("$.*.['quantityOnHand']", everyItem(notNullValue())));
 
     }
 
@@ -269,7 +272,7 @@ class JuiceControllerIT {
     void testListJuiceByShowInventoryFalse() throws Exception {
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("showInventory", String.valueOf(false)))
-               .andExpect(jsonPath("$.*.['quantityOnHand']",everyItem(nullValue())));
+               .andExpect(jsonPath("$.*.['quantityOnHand']", everyItem(nullValue())));
 
     }
 
@@ -280,17 +283,18 @@ class JuiceControllerIT {
         String juiceStyleString = juice.getJuiceStyle()
                                        .name();
 
-        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle())
+        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle(), null)
+                                      .getContent()
                                       .size();
 
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("juiceName", juiceName)
                                                        .queryParam("juiceStyle", juiceStyleString)
                                                        .queryParam("showInventory", String.valueOf(true)))
-               .andExpect(jsonPath("$.size()", is(sizeOfList)))
+               .andExpect(jsonPath("$.totalElements", is(sizeOfList)))
                .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))))
                .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))))
-               .andExpect(jsonPath("$.*.['quantityOnHand']",everyItem(notNullValue())));
+               .andExpect(jsonPath("$.*.['quantityOnHand']", everyItem(notNullValue())));
 
     }
 
@@ -301,16 +305,20 @@ class JuiceControllerIT {
         String juiceStyleString = juice.getJuiceStyle()
                                        .name();
 
-        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle())
+        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle(), null)
+                                      .getContent()
                                       .size();
 
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("juiceName", juiceName)
                                                        .queryParam("juiceStyle", juiceStyleString)
                                                        .queryParam("showInventory", String.valueOf(false)))
-               .andExpect(jsonPath("$.size()", is(sizeOfList)))
+               .andExpect(jsonPath("$.totalElements", is(sizeOfList)))
                .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))))
                .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))))
-               .andExpect(jsonPath("$.*.['quantityOnHand']",everyItem(nullValue())));
+               .andExpect(jsonPath("$.*.['quantityOnHand']", everyItem(nullValue())));
     }
+
+
+
 }

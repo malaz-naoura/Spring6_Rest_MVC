@@ -2,18 +2,17 @@ package mezo.restmvc.spring_6_rest_mvc.repositories;
 
 import mezo.restmvc.spring_6_rest_mvc.entities.Juice;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceStyle;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface JuiceRepo extends JpaRepository<Juice, UUID> {
-    Optional<Juice> findJuiceByJuiceName(String JuiceName);
 
-    List<Juice> findAllByJuiceName(String JuiceName);
+    Page<Juice> findAllByJuiceName(String JuiceName, Pageable pageable);
 
-    List<Juice> findAllByJuiceStyle(JuiceStyle juiceStyle);
+    Page<Juice> findAllByJuiceStyle(JuiceStyle juiceStyle, Pageable pageable);
 
-    List<Juice> findAllByJuiceNameAndJuiceStyle(String JuiceName,JuiceStyle juiceStyle);
+    Page<Juice> findAllByJuiceNameAndJuiceStyle(String JuiceName, JuiceStyle juiceStyle, Pageable pageable);
 }
