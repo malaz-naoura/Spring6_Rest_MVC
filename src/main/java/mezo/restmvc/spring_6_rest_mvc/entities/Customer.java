@@ -1,33 +1,55 @@
 package mezo.restmvc.spring_6_rest_mvc.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Customer {
-    @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name="UUID",strategy = "org.hibernate.id.UUIDGenerator")
-    @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(length = 36,columnDefinition = "varchar(36)",updatable = false,nullable = false)
-    private UUID id;
-    @Version
-    private Integer version;
+public class Customer extends BaseEntity {
+
+    // Fields //
+
     private String name;
-    private LocalDateTime createdDate;
-    private LocalDateTime updateDate;
     private String email;
+
+    @Builder.Default
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @OneToMany(mappedBy = "customer",cascade = CascadeType.PERSIST)
+    private List<Order> orders=new ArrayList<>();
+
+    // Methods //
+
+    public List<Order> getOrderList() {
+        return Collections.unmodifiableList(orders);
+    }
+
+    public void addOrder(final Order newOrder) {
+        if (orders.contains(newOrder))
+            return;
+
+        orders.add(newOrder);
+        newOrder.setCustomer(this);
+    }
+
+    public void removeOrder(final Order currOrder) {
+        orders.remove(currOrder);
+    }
+
+    private static final class CustomerBuilderImpl extends CustomerBuilder<Customer, CustomerBuilderImpl> {
+        public Customer build() {
+            Customer c = new Customer(this);
+            c.orders.forEach(order -> order.setCustomer(c));
+            return c;
+        }
+    }
+
 }

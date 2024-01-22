@@ -10,9 +10,9 @@ import java.util.UUID;
 
 public interface JuiceRepo extends JpaRepository<Juice, UUID> {
 
-    Page<Juice> findAllByJuiceName(String JuiceName, Pageable pageable);
+    Page<Juice> findAllByName(String JuiceName, Pageable pageable);
 
     Page<Juice> findAllByJuiceStyle(JuiceStyle juiceStyle, Pageable pageable);
 
-    Page<Juice> findAllByJuiceNameAndJuiceStyle(String JuiceName, JuiceStyle juiceStyle, Pageable pageable);
+    Page<Juice> findAllByNameAndJuiceStyle(String JuiceName, JuiceStyle juiceStyle, Pageable pageable);
 }

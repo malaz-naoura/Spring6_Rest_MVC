@@ -22,7 +22,7 @@ class JuiceRepoTest {
 
     @Test
     void testSave() {
-        Juice juice=Juice.builder().juiceName("juice_1").build();
+        Juice juice=Juice.builder().name("juice_1").build();
         Juice savedObject=juiceRepo.save(juice);
 
         juiceRepo.flush();
@@ -35,7 +35,7 @@ class JuiceRepoTest {
     void testSaveTooLongString() {
 
         assertThrows(ConstraintViolationException.class,() -> {
-            Juice juice=Juice.builder().juiceName("juice_1_juice_1_juice_1_juice_1_juice_1_").build();
+            Juice juice=Juice.builder().name("juice_1_juice_1_juice_1_juice_1_juice_1_").build();
             Juice savedObject=juiceRepo.save(juice);
 
             juiceRepo.flush();

@@ -22,19 +22,19 @@ public class JuiceServiceImpl implements JuiceService {
         this.uuidJuiceMap = new HashMap<>();
         JuiceDTO juiceDTO1 = JuiceDTO.builder()
                                      .id(UUID.randomUUID())
-                                     .juiceName("juice one")
+                                     .name("juice one")
                                      .createdDate(LocalDateTime.now())
                                      .build();
 
         JuiceDTO juiceDTO2 = JuiceDTO.builder()
                                      .id(UUID.randomUUID())
-                                     .juiceName("juice two")
+                                     .name("juice two")
                                      .createdDate(LocalDateTime.now())
                                      .build();
 
         JuiceDTO juiceDTO3 = JuiceDTO.builder()
                                      .id(UUID.randomUUID())
-                                     .juiceName("juice third")
+                                     .name("juice third")
                                      .createdDate(LocalDateTime.now())
                                      .build();
 
@@ -87,8 +87,8 @@ public class JuiceServiceImpl implements JuiceService {
     @Override
     public Optional<JuiceDTO> update(UUID id, JuiceDTO newJuiceDTO) {
         JuiceDTO toUpdateJuiceDTO = uuidJuiceMap.get(id);
-        if (StringUtils.hasText(newJuiceDTO.getJuiceName())) {
-            toUpdateJuiceDTO.setJuiceName(newJuiceDTO.getJuiceName());
+        if (StringUtils.hasText(newJuiceDTO.getName())) {
+            toUpdateJuiceDTO.setName(newJuiceDTO.getName());
         }
         if (newJuiceDTO.getPrice() != (null)) {
             toUpdateJuiceDTO.setPrice(newJuiceDTO.getPrice());

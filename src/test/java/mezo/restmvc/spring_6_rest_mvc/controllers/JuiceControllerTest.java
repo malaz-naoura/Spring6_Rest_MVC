@@ -82,7 +82,7 @@ class JuiceControllerTest {
                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                // throw exception when using  optional class and jsonPath together, because the different type of UUID detected
 //               .andExpect(jsonPath("$.id", is(Optional.of(juice).get().getId())))
-               .andExpect(jsonPath("$.juiceName", is(juiceDTO.getJuiceName())));
+               .andExpect(jsonPath("$.name", is(juiceDTO.getName())));
     }
 
     @Test
@@ -149,7 +149,7 @@ class JuiceControllerTest {
                                             .getContent()
                                             .get(0);
 
-        juiceDTO.setJuiceName("mezoooo");
+        juiceDTO.setName("mezoooo");
 
         given(juiceService.update(any(UUID.class), any(JuiceDTO.class))).willReturn(Optional.of(juiceDTO));
 
@@ -162,8 +162,8 @@ class JuiceControllerTest {
         verify(juiceService).update(uuidArgumentCaptor.capture(), juiceArgumentCaptor.capture());
 
         assertThat(juiceDTO.getId()).isEqualTo(uuidArgumentCaptor.getValue());
-        assertThat(juiceDTO.getJuiceName()).isEqualTo(juiceArgumentCaptor.getValue()
-                                                                         .getJuiceName());
+        assertThat(juiceDTO.getName()).isEqualTo(juiceArgumentCaptor.getValue()
+                                                                         .getName());
     }
 
     @Test

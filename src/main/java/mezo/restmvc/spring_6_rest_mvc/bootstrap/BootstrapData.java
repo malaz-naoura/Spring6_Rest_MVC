@@ -11,20 +11,13 @@ import mezo.restmvc.spring_6_rest_mvc.repositories.CustomerRepo;
 import mezo.restmvc.spring_6_rest_mvc.repositories.JuiceRepo;
 import mezo.restmvc.spring_6_rest_mvc.service.JuiceCsvService;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URI;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -49,7 +42,7 @@ public class BootstrapData implements CommandLineRunner {
     private void loadJuiceData() {
         if (juiceRepo.count() == 0) {
             Juice beer1 = Juice.builder()
-                               .juiceName("Galaxy Cat")
+                               .name("Galaxy Cat")
                                .juiceStyle(JuiceStyle.STRAWBERRY)
                                .upc("12356")
                                .price(new BigDecimal("12.99"))
@@ -59,7 +52,7 @@ public class BootstrapData implements CommandLineRunner {
                                .build();
 
             Juice beer2 = Juice.builder()
-                               .juiceName("Crank")
+                               .name("Crank")
                                .juiceStyle(JuiceStyle.LEMON)
                                .upc("12356222")
                                .price(new BigDecimal("11.99"))
@@ -69,7 +62,7 @@ public class BootstrapData implements CommandLineRunner {
                                .build();
 
             Juice beer3 = Juice.builder()
-                               .juiceName("Sunshine City")
+                               .name("Sunshine City")
                                .juiceStyle(JuiceStyle.ORANGE)
                                .upc("12356")
                                .price(new BigDecimal("13.99"))
@@ -145,9 +138,11 @@ public class BootstrapData implements CommandLineRunner {
         juiceRepo.saveAll(juiceCsvRecords.stream()
                                          .map(o -> {
                                              return Juice.builder()
-                                                         .juiceName(StringUtils.abbreviate(o.getJuice(), 10))
-                                                         .quantityOnHand(o.getCount())
+                                                         .name(StringUtils.abbreviate(o.getJuice(), 10))
+                                                         .quantityOnHand(Integer.valueOf(o.getCount_y()))
                                                          .juiceStyle(Random.getRandomValueOf(JuiceStyle.class))
+                                                         .price(BigDecimal.valueOf(
+                                                                 new java.util.Random().nextInt(1000)))
                                                          .build();
                                          })
                                          .collect(Collectors.toList()));

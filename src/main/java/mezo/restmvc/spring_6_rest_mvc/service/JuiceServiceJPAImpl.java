@@ -14,9 +14,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.UUID;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 @RequiredArgsConstructor
@@ -31,29 +31,36 @@ public class JuiceServiceJPAImpl implements JuiceService {
     public static final Integer DEFAULT_PAGE_SIZE = 25;
 
     PageRequest createNewPageRequest(Integer pageNumber, Integer pageSize) {
-        if (pageNumber == null || pageNumber < 1)
-            pageNumber = DEFAULT_PAGE_NUMBER;
+        if (pageNumber == null || pageNumber < 1) pageNumber = DEFAULT_PAGE_NUMBER;
 
-        if (pageSize == null || pageSize < 1)
-            pageSize = DEFAULT_PAGE_SIZE;
-        else if (pageSize > 1000)
-            pageSize = 1000;
+        if (pageSize == null || pageSize < 1) pageSize = DEFAULT_PAGE_SIZE;
+        else if (pageSize > 1000) pageSize = 1000;
 
-        String filedNameToSortElementBy = "juiceName";
-        Boolean isExistField = Arrays.stream(Juice.class
-                                                     .getDeclaredFields())
+        String filedNameToSortElementBy = "name";
+        List<Field> fileds = new ArrayList<>();
+
+        Class temp = Juice.class;
+        while (temp != null) {
+            fileds.addAll(Arrays.stream(temp.getDeclaredFields())
+                                .filter(field -> Modifier.isPublic(field.getModifiers()) || Modifier.isProtected(
+                                        field.getModifiers()))
+                                .toList());
+            temp = temp.getSuperclass();
+        }
+
+        Boolean isExistField = fileds.stream()
                                      .anyMatch(field -> field.getName()
                                                              .equals(filedNameToSortElementBy));
 
         if (!isExistField)
-            throw new RuntimeException("No field with name of " + filedNameToSortElementBy + "is founded");
+            throw new RuntimeException("No field with name of (" + filedNameToSortElementBy + ") is founded");
 
         Sort sort = Sort.by(filedNameToSortElementBy);
-        return PageRequest.of(pageNumber, pageSize,sort);
+        return PageRequest.of(pageNumber, pageSize, sort);
     }
 
     Page<Juice> listJuiceByName(String juiceName, Pageable pageable) {
-        return juiceRepo.findAllByJuiceName(juiceName, pageable);
+        return juiceRepo.findAllByName(juiceName, pageable);
     }
 
     Page<Juice> listJuiceByStyle(String juiceStyle, Pageable pageable) {
@@ -61,7 +68,7 @@ public class JuiceServiceJPAImpl implements JuiceService {
     }
 
     Page<Juice> listJuiceByNameAndStyle(String juiceName, String juiceStyle, Pageable pageable) {
-        return juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, JuiceStyle.valueOf(juiceStyle), pageable);
+        return juiceRepo.findAllByNameAndJuiceStyle(juiceName, JuiceStyle.valueOf(juiceStyle), pageable);
     }
 
     @Override
@@ -126,9 +133,7 @@ public class JuiceServiceJPAImpl implements JuiceService {
 
         juiceRepo.findById(id)
                  .ifPresentOrElse(juice -> {
-                     if (juiceDTO.getId() != null) juice.setJuiceName(juiceDTO.getJuiceName());
-
-                     if (juiceDTO.getJuiceName() != null) juice.setJuiceName(juiceDTO.getJuiceName());
+                     if (juiceDTO.getName() != null) juice.setName(juiceDTO.getName());
 
                      if (juiceDTO.getJuiceStyle() != null) juice.setJuiceStyle(juiceDTO.getJuiceStyle());
 

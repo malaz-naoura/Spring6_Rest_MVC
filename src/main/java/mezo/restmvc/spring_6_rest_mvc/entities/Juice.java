@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceStyle;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
@@ -17,37 +18,27 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Juice {
+public class Juice extends Product {
 
-    @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name="UUID",strategy = "org.hibernate.id.UUIDGenerator")
-    @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(length = 36,columnDefinition = "varchar(36)",updatable = false,nullable = false)
-    private UUID id;
-    @Version
-    private Integer version;
+    // Fields //
 
-    @NotNull
-    @NotBlank
-    @Size(max = 25) // validation before submit the new data to database and return exception if violate tht constraints
-    @Column(length = 25) // filed's size
-    private String juiceName;
     private JuiceStyle juiceStyle;
     private String upc;
-    private Integer quantityOnHand;
-    private BigDecimal price;
 
-    @CreationTimestamp
-    private LocalDateTime createdDate;
+    private static final class JuiceBuilderImpl extends JuiceBuilder<Juice, JuiceBuilderImpl> {
 
-    @UpdateTimestamp
-    private  LocalDateTime updateDate;
+        public Juice build() {
+            Juice juice= new Juice(this);
+            juice.categories.forEach(category -> category.addProduct(juice));
+            return juice;
+        }
+    }
 }
