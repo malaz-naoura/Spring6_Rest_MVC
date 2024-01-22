@@ -17,7 +17,7 @@ public class JuiceDTO {
 
     @NotNull
     @NotBlank
-    private String juiceName;
+    private String name;
     private JuiceStyle juiceStyle;
     private String upc;
     private Integer quantityOnHand;

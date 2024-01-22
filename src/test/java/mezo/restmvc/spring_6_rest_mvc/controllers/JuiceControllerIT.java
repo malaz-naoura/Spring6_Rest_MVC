@@ -7,14 +7,12 @@ import mezo.restmvc.spring_6_rest_mvc.mappers.JuiceMapper;
 import mezo.restmvc.spring_6_rest_mvc.mezoutils.Random;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.repositories.JuiceRepo;
-import mezo.restmvc.spring_6_rest_mvc.service.JuiceServiceJPAImpl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -105,19 +103,19 @@ class JuiceControllerIT {
     @Test
     void testCreateNewObject() {
         Juice newJuice = Juice.builder()
-                              .juiceName("juiceee")
+                              .name("juiceee")
                               .build();
 
         ResponseEntity responseEntity = juiceController.saveNewJuice(juiceMapper.objToDto(newJuice));
 
-        Assertions.assertThat(newJuice.getJuiceName())
+        Assertions.assertThat(newJuice.getName())
                   .isEqualTo(juiceRepo.findAll()
                                       .stream()
-                                      .filter(juice -> juice.getJuiceName()
-                                                            .equals(newJuice.getJuiceName()))
+                                      .filter(juice -> juice.getName()
+                                                            .equals(newJuice.getName()))
                                       .findFirst()
                                       .get()
-                                      .getJuiceName());
+                                      .getName());
 
         Assertions.assertThat(HttpStatusCode.valueOf(HttpStatus.CREATED.value()))
                   .isEqualTo(responseEntity.getStatusCode());
@@ -134,7 +132,7 @@ class JuiceControllerIT {
         JuiceDTO juiceDTO = juiceMapper.objToDto(juice);
         juiceDTO.setId(null);
         juiceDTO.setVersion(null);
-        juiceDTO.setJuiceName(juiceDTO.getJuiceName() + " updated");
+        juiceDTO.setName(juiceDTO.getName() + " updated");
 
         ResponseEntity responseEntity = juiceController.updateJuice(juice.getId(), juiceDTO);
 
@@ -142,8 +140,8 @@ class JuiceControllerIT {
         Juice updatedJuice = juiceRepo.findById(juice.getId())
                                       .get();
 
-        Assertions.assertThat(juiceDTO.getJuiceName())
-                  .isEqualTo(updatedJuice.getJuiceName());
+        Assertions.assertThat(juiceDTO.getName())
+                  .isEqualTo(updatedJuice.getName());
 
         Assertions.assertThat(HttpStatusCode.valueOf(HttpStatus.NO_CONTENT.value()))
                   .isEqualTo(responseEntity.getStatusCode());
@@ -192,7 +190,7 @@ class JuiceControllerIT {
         Juice juice = juiceRepo.findAll()
                                .get(0);
 
-        juice.setJuiceName("mezoooo1234567890mezoooo1234567890mezoooo1234567890");
+        juice.setName("mezoooo1234567890mezoooo1234567890mezoooo1234567890");
 
         MvcResult mvcResult = mockMvc.perform(
                                              patch(JuiceController.JUICE_PATH_ID, juice.getId()).accept(MediaType.APPLICATION_JSON)
@@ -209,10 +207,10 @@ class JuiceControllerIT {
     void testListJuiceByName() throws Exception {
 
         Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
-        String juiceName = juice.getJuiceName();
+        String juiceName = juice.getName();
 
 
-        Integer sizeOfList = juiceRepo.findAllByJuiceName(juiceName, null)
+        Integer sizeOfList = juiceRepo.findAllByName(juiceName, null)
                                       .getContent()
                                       .size();
 
@@ -243,11 +241,11 @@ class JuiceControllerIT {
     @Test
     void testListJuiceByNameAndJuiceStyle() throws Exception {
         Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
-        String juiceName = juice.getJuiceName();
+        String juiceName = juice.getName();
         String juiceStyleString = juice.getJuiceStyle()
                                        .name();
 
-        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle(), null)
+        Integer sizeOfList = juiceRepo.findAllByNameAndJuiceStyle(juiceName, juice.getJuiceStyle(), null)
                                       .getContent()
                                       .size();
 
@@ -279,11 +277,11 @@ class JuiceControllerIT {
     @Test
     void testListJuiceByNameAndJuiceStyleAndShowInventoryTrue() throws Exception {
         Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
-        String juiceName = juice.getJuiceName();
+        String juiceName = juice.getName();
         String juiceStyleString = juice.getJuiceStyle()
                                        .name();
 
-        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle(), null)
+        Integer sizeOfList = juiceRepo.findAllByNameAndJuiceStyle(juiceName, juice.getJuiceStyle(), null)
                                       .getContent()
                                       .size();
 
@@ -301,11 +299,11 @@ class JuiceControllerIT {
     @Test
     void testListJuiceByNameAndJuiceStyleAndShowInventoryFalse() throws Exception {
         Juice juice = Random.getRandomValueOf(juiceRepo.findAll());
-        String juiceName = juice.getJuiceName();
+        String juiceName = juice.getName();
         String juiceStyleString = juice.getJuiceStyle()
                                        .name();
 
-        Integer sizeOfList = juiceRepo.findAllByJuiceNameAndJuiceStyle(juiceName, juice.getJuiceStyle(), null)
+        Integer sizeOfList = juiceRepo.findAllByNameAndJuiceStyle(juiceName, juice.getJuiceStyle(), null)
                                       .getContent()
                                       .size();
 
@@ -318,7 +316,4 @@ class JuiceControllerIT {
                .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))))
                .andExpect(jsonPath("$.*.['quantityOnHand']", everyItem(nullValue())));
     }
-
-
-
 }
