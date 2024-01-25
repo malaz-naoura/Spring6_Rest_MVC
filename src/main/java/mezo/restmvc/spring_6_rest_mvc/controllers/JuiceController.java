@@ -41,7 +41,7 @@ public class JuiceController {
     ResponseEntity saveNewJuice(@Validated @RequestBody JuiceDTO juiceDTO) {
         JuiceDTO savedJuiceDTO = juiceService.addJuice(juiceDTO);
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "api/v1/" + savedJuiceDTO.getId());
+        headers.add("Location", JUICE_PATH + "/" + savedJuiceDTO.getId());
         return new ResponseEntity(headers, HttpStatus.CREATED);
     }
 
