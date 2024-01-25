@@ -27,11 +27,11 @@ public class JuiceServiceJPAImpl implements JuiceService {
     private final JuiceRepo juiceRepo;
     private final JuiceMapper juiceMapper;
 
-    public static final Integer DEFAULT_PAGE_NUMBER = 1;
+    public static final Integer DEFAULT_PAGE_NUMBER = 0;
     public static final Integer DEFAULT_PAGE_SIZE = 25;
 
     PageRequest createNewPageRequest(Integer pageNumber, Integer pageSize) {
-        if (pageNumber == null || pageNumber < 1) pageNumber = DEFAULT_PAGE_NUMBER;
+        if (pageNumber == null || pageNumber < 0) pageNumber = DEFAULT_PAGE_NUMBER;
 
         if (pageSize == null || pageSize < 1) pageSize = DEFAULT_PAGE_SIZE;
         else if (pageSize > 1000) pageSize = 1000;
