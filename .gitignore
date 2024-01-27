@@ -31,3 +31,4 @@ build/
 
 ### VS Code ###
 .vscode/
+/src/test/java/mezo/restmvc/spring_6_rest_mvc/mezoTest/

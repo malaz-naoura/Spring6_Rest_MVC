@@ -1,6 +1,7 @@
 package mezo.restmvc.spring_6_rest_mvc.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import mezo.restmvc.spring_6_rest_mvc.configurations.SpringSecurityConfig;
 import mezo.restmvc.spring_6_rest_mvc.model.JuiceDTO;
 import mezo.restmvc.spring_6_rest_mvc.service.JuiceService;
 import mezo.restmvc.spring_6_rest_mvc.service.JuiceServiceImpl;
@@ -10,12 +11,13 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,8 +30,8 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
 @WebMvcTest(JuiceController.class)
+@Import(SpringSecurityConfig.class)
 class JuiceControllerTest {
 
     @Autowired
@@ -57,12 +59,13 @@ class JuiceControllerTest {
     void listJuice() throws Exception {
 
 
-
         Page<JuiceDTO> juiceDTOList = juiceServiceImpl.listJuices(null, null, null, null, null);
 
-        given(juiceService.listJuices(any(), any(), any(), any(),any())).willReturn(juiceDTOList);
+        given(juiceService.listJuices(any(), any(), any(), any(), any())).willReturn(juiceDTOList);
 
-        mockMvc.perform(get(JuiceController.JUICE_PATH))
+        mockMvc.perform(get(JuiceController.JUICE_PATH).with(
+                       SecurityMockMvcRequestPostProcessors.httpBasic(GlobalSharedVariablesTest.USERNAME,
+                                                                      GlobalSharedVariablesTest.PASSWORD)))
                .andExpect(status().isOk());
 //               .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 //               .andExpect(jsonPath("$.length()", is(juiceDTOList.getContent()
@@ -77,7 +80,10 @@ class JuiceControllerTest {
 
         given(juiceService.getJuiceById(any(UUID.class))).willReturn(Optional.of(juiceDTO));
 
-        mockMvc.perform(get(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).accept(MediaType.APPLICATION_JSON)
+                                                                            .with(SecurityMockMvcRequestPostProcessors.httpBasic(
+                                                                                    GlobalSharedVariablesTest.USERNAME,
+                                                                                    GlobalSharedVariablesTest.PASSWORD)))
                .andExpect(status().isOk())
                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                // throw exception when using  optional class and jsonPath together, because the different type of UUID detected
@@ -105,7 +111,10 @@ class JuiceControllerTest {
 
         mockMvc.perform(post(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                         .content(objectMapper.writeValueAsString(newJuiceDTO))
-                                                        .accept(MediaType.APPLICATION_JSON))
+                                                        .accept(MediaType.APPLICATION_JSON)
+                                                        .with(SecurityMockMvcRequestPostProcessors.httpBasic(
+                                                                GlobalSharedVariablesTest.USERNAME,
+                                                                GlobalSharedVariablesTest.PASSWORD)))
                .andExpect(status().isCreated())
                .andExpect(header().exists("Location"));
     }
@@ -120,7 +129,10 @@ class JuiceControllerTest {
         mockMvc.perform(put(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).contentType(MediaType.APPLICATION_JSON)
                                                                             .content(objectMapper.writeValueAsString(
                                                                                     juiceDTO))
-                                                                            .accept(MediaType.APPLICATION_JSON))
+                                                                            .accept(MediaType.APPLICATION_JSON)
+                                                                            .with(SecurityMockMvcRequestPostProcessors.httpBasic(
+                                                                                    GlobalSharedVariablesTest.USERNAME,
+                                                                                    GlobalSharedVariablesTest.PASSWORD)))
                .andExpect(status().isNoContent());
 
         verify(juiceService).updateOrCreate(any(UUID.class), any(JuiceDTO.class));
@@ -134,7 +146,10 @@ class JuiceControllerTest {
                                             .get(0);
         given(juiceService.removeById(any(UUID.class))).willReturn(Boolean.TRUE);
 
-        mockMvc.perform(delete(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(delete(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).accept(MediaType.APPLICATION_JSON)
+                                                                               .with(SecurityMockMvcRequestPostProcessors.httpBasic(
+                                                                                       GlobalSharedVariablesTest.USERNAME,
+                                                                                       GlobalSharedVariablesTest.PASSWORD)))
                .andExpect(status().isNoContent());
 
         verify(juiceService).removeById(uuidArgumentCaptor.capture());
@@ -156,14 +171,17 @@ class JuiceControllerTest {
         mockMvc.perform(patch(JuiceController.JUICE_PATH_ID, juiceDTO.getId()).accept(MediaType.APPLICATION_JSON)
                                                                               .contentType(MediaType.APPLICATION_JSON)
                                                                               .content(objectMapper.writeValueAsString(
-                                                                                      juiceDTO)))
+                                                                                      juiceDTO))
+                                                                              .with(SecurityMockMvcRequestPostProcessors.httpBasic(
+                                                                                      GlobalSharedVariablesTest.USERNAME,
+                                                                                      GlobalSharedVariablesTest.PASSWORD)))
                .andExpect(status().isNoContent());
 
         verify(juiceService).update(uuidArgumentCaptor.capture(), juiceArgumentCaptor.capture());
 
         assertThat(juiceDTO.getId()).isEqualTo(uuidArgumentCaptor.getValue());
         assertThat(juiceDTO.getName()).isEqualTo(juiceArgumentCaptor.getValue()
-                                                                         .getName());
+                                                                    .getName());
     }
 
     @Test
@@ -171,7 +189,9 @@ class JuiceControllerTest {
 
         given(juiceService.getJuiceById(any(UUID.class))).willThrow(NotFoundException.class);
 
-        mockMvc.perform(get(JuiceController.JUICE_PATH_ID, UUID.randomUUID()))
+        mockMvc.perform(get(JuiceController.JUICE_PATH_ID, UUID.randomUUID()).with(
+                       SecurityMockMvcRequestPostProcessors.httpBasic(GlobalSharedVariablesTest.USERNAME,
+                                                                      GlobalSharedVariablesTest.PASSWORD)))
                .andExpect(status().isNotFound());
     }
 
@@ -187,7 +207,10 @@ class JuiceControllerTest {
 
         MvcResult mvcResult = mockMvc.perform(post(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                                               .content(objectMapper.writeValueAsString(
-                                                                                      juice)))
+                                                                                      juice))
+                                                                              .with(SecurityMockMvcRequestPostProcessors.httpBasic(
+                                                                                      GlobalSharedVariablesTest.USERNAME,
+                                                                                      GlobalSharedVariablesTest.PASSWORD)))
                                      .andExpect(jsonPath("$.length()", is(2)))
                                      .andExpect(status().isBadRequest())
                                      .andReturn();
