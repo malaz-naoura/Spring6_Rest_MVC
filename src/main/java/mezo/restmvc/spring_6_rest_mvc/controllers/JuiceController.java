@@ -14,9 +14,9 @@ import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/v1/juices")
+@RequestMapping("/api/v1/juice")
 public class JuiceController {
-    public static final String JUICE_PATH = "/api/v1/juices";
+    public static final String JUICE_PATH = "/api/v1/juice";
     private static final String JUICE_ID_VAR = "/{juiceId}";
     public static final String JUICE_PATH_ID = JUICE_PATH + JUICE_ID_VAR;
 
@@ -41,7 +41,7 @@ public class JuiceController {
     ResponseEntity saveNewJuice(@Validated @RequestBody JuiceDTO juiceDTO) {
         JuiceDTO savedJuiceDTO = juiceService.addJuice(juiceDTO);
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", "api/v1/" + savedJuiceDTO.getId());
+        headers.add("Location", JUICE_PATH + "/" + savedJuiceDTO.getId());
         return new ResponseEntity(headers, HttpStatus.CREATED);
     }
 

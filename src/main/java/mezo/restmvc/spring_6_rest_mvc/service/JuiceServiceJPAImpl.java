@@ -27,11 +27,11 @@ public class JuiceServiceJPAImpl implements JuiceService {
     private final JuiceRepo juiceRepo;
     private final JuiceMapper juiceMapper;
 
-    public static final Integer DEFAULT_PAGE_NUMBER = 1;
+    public static final Integer DEFAULT_PAGE_NUMBER = 0;
     public static final Integer DEFAULT_PAGE_SIZE = 25;
 
     PageRequest createNewPageRequest(Integer pageNumber, Integer pageSize) {
-        if (pageNumber == null || pageNumber < 1) pageNumber = DEFAULT_PAGE_NUMBER;
+        if (pageNumber == null || pageNumber < 0) pageNumber = DEFAULT_PAGE_NUMBER;
 
         if (pageSize == null || pageSize < 1) pageSize = DEFAULT_PAGE_SIZE;
         else if (pageSize > 1000) pageSize = 1000;
@@ -113,7 +113,25 @@ public class JuiceServiceJPAImpl implements JuiceService {
 
     @Override
     public JuiceDTO updateOrCreate(UUID id, JuiceDTO juiceDTO) {
-        return null;
+
+        AtomicReference<JuiceDTO> atomicReference=new AtomicReference<>();
+
+        juiceRepo.findById(id).ifPresentOrElse(juice -> {
+            juice.setName(juiceDTO.getName());
+            juice.setJuiceStyle(juiceDTO.getJuiceStyle());
+            juice.setPrice(juiceDTO.getPrice());
+            juice.setQuantityOnHand(juiceDTO.getQuantityOnHand());
+            juice.setUpc(juiceDTO.getUpc());
+
+            atomicReference.set(juiceMapper.objToDto(juice));
+            juiceRepo.save(juice);
+
+        },() -> {
+             Juice createJuice= juiceRepo.save(juiceMapper.dtoToObj(juiceDTO));
+            atomicReference.set(juiceMapper.objToDto(createJuice));
+        });
+
+        return atomicReference.get();
     }
 
     @Override
@@ -134,6 +152,10 @@ public class JuiceServiceJPAImpl implements JuiceService {
         juiceRepo.findById(id)
                  .ifPresentOrElse(juice -> {
                      if (juiceDTO.getName() != null) juice.setName(juiceDTO.getName());
+
+                     if (juiceDTO.getQuantityOnHand() != null) juice.setQuantityOnHand(juiceDTO.getQuantityOnHand());
+
+                     if (juiceDTO.getUpc() != null) juice.setUpc(juiceDTO.getUpc());
 
                      if (juiceDTO.getJuiceStyle() != null) juice.setJuiceStyle(juiceDTO.getJuiceStyle());
 
