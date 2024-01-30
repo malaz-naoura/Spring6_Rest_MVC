@@ -200,9 +200,7 @@ class JuiceControllerIT {
                                              patch(JuiceController.JUICE_PATH_ID, juice.getId()).accept(MediaType.APPLICATION_JSON)
                                                                                                 .contentType(MediaType.APPLICATION_JSON)
                                                                                                 .content(objectMapper.writeValueAsString(juice))
-                                                                                                .with(SecurityMockMvcRequestPostProcessors.httpBasic(
-                                                                                                        GlobalSharedVariablesTest.USERNAME,
-                                                                                                        GlobalSharedVariablesTest.PASSWORD)))
+                                                                                                .with(GlobalSharedVariablesTest.requestPostProcessor))
                                      .andExpect(status().isBadRequest())
                                      .andReturn();
 
@@ -223,9 +221,7 @@ class JuiceControllerIT {
 
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("juiceName", juiceName)
-                                                       .with(SecurityMockMvcRequestPostProcessors.httpBasic(
-                                                               GlobalSharedVariablesTest.USERNAME,
-                                                               GlobalSharedVariablesTest.PASSWORD)))
+                                                       .with(GlobalSharedVariablesTest.requestPostProcessor))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.totalElements", is(sizeOfList)))
                .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))));
@@ -243,9 +239,7 @@ class JuiceControllerIT {
 
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("juiceStyle", juiceStyleString)
-                                                       .with(SecurityMockMvcRequestPostProcessors.httpBasic(
-                                                               GlobalSharedVariablesTest.USERNAME,
-                                                               GlobalSharedVariablesTest.PASSWORD)))
+                                                       .with(GlobalSharedVariablesTest.requestPostProcessor))
                .andExpect(jsonPath("$.totalElements", is(sizeOfList)))
                .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))));
 
@@ -265,9 +259,7 @@ class JuiceControllerIT {
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("juiceName", juiceName)
                                                        .queryParam("juiceStyle", juiceStyleString)
-                                                       .with(SecurityMockMvcRequestPostProcessors.httpBasic(
-                                                               GlobalSharedVariablesTest.USERNAME,
-                                                               GlobalSharedVariablesTest.PASSWORD)))
+                                                       .with(GlobalSharedVariablesTest.requestPostProcessor))
                .andExpect(jsonPath("$.totalElements", is(sizeOfList)))
                .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))))
                .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))));
@@ -278,9 +270,7 @@ class JuiceControllerIT {
     void testListJuiceByShowInventoryTrue() throws Exception {
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("showInventory", String.valueOf(true))
-                                                       .with(SecurityMockMvcRequestPostProcessors.httpBasic(
-                                                               GlobalSharedVariablesTest.USERNAME,
-                                                               GlobalSharedVariablesTest.PASSWORD)))
+                                                       .with(GlobalSharedVariablesTest.requestPostProcessor))
                .andExpect(jsonPath("$.*.['quantityOnHand']", everyItem(notNullValue())));
 
     }
@@ -289,9 +279,7 @@ class JuiceControllerIT {
     void testListJuiceByShowInventoryFalse() throws Exception {
         mockMvc.perform(get(JuiceController.JUICE_PATH).contentType(MediaType.APPLICATION_JSON)
                                                        .queryParam("showInventory", String.valueOf(false))
-                                                       .with(SecurityMockMvcRequestPostProcessors.httpBasic(
-                                                               GlobalSharedVariablesTest.USERNAME,
-                                                               GlobalSharedVariablesTest.PASSWORD)))
+                                                       .with(GlobalSharedVariablesTest.requestPostProcessor))
                .andExpect(jsonPath("$.*.['quantityOnHand']", everyItem(nullValue())));
 
     }
@@ -311,9 +299,7 @@ class JuiceControllerIT {
                                                        .queryParam("juiceName", juiceName)
                                                        .queryParam("juiceStyle", juiceStyleString)
                                                        .queryParam("showInventory", String.valueOf(true))
-                                                       .with(SecurityMockMvcRequestPostProcessors.httpBasic(
-                                                               GlobalSharedVariablesTest.USERNAME,
-                                                               GlobalSharedVariablesTest.PASSWORD)))
+                                                       .with(GlobalSharedVariablesTest.requestPostProcessor))
                .andExpect(jsonPath("$.totalElements", is(sizeOfList)))
                .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))))
                .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))))
@@ -336,9 +322,7 @@ class JuiceControllerIT {
                                                        .queryParam("juiceName", juiceName)
                                                        .queryParam("juiceStyle", juiceStyleString)
                                                        .queryParam("showInventory", String.valueOf(false))
-                                                       .with(SecurityMockMvcRequestPostProcessors.httpBasic(
-                                                               GlobalSharedVariablesTest.USERNAME,
-                                                               GlobalSharedVariablesTest.PASSWORD)))
+                                                       .with(GlobalSharedVariablesTest.requestPostProcessor))
                .andExpect(jsonPath("$.totalElements", is(sizeOfList)))
                .andExpect(jsonPath("$.*.['juiceName']", everyItem(is(juiceName))))
                .andExpect(jsonPath("$.*.['juiceStyle']", everyItem(is(juiceStyleString))))
